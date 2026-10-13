@@ -1,0 +1,12 @@
+services:
+  pitchlab:
+    image: ghcr.io/adammoss08/pitchlab:latest
+    container_name: pitchlab
+    restart: unless-stopped
+    ports:
+      - "18473:8080"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:size=16m

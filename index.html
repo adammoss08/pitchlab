@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PitchLab — ear training</title>
+<style>
+  :root { color-scheme: dark; --bg:#10141d; --panel:#1b2230; --line:#343f52; --text:#f5f2e9; --muted:#a9b3c3; --gold:#e9ba6d; --mint:#8adbb8; --red:#f08b8b; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; background:radial-gradient(circle at 65% -20%,#28364a 0,#10141d 55%); color:var(--text); font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  button,select { font:inherit; }
+  button { cursor:pointer; }
+  .wrap { max-width:1060px; margin:auto; padding:28px 24px 45px; }
+  header { display:flex; justify-content:space-between; align-items:center; gap:18px; margin-bottom:32px; }
+  .brand { display:flex; align-items:center; gap:13px; font-size:22px; font-weight:750; letter-spacing:-.04em; }
+  .mark { width:39px; height:39px; border-radius:12px; display:grid; place-items:center; background:var(--gold); color:#1a1a1a; font-size:24px; }
+  .tag { color:var(--muted); font-size:14px; }
+  .grid { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(285px,1fr); gap:18px; }
+  .panel { background:rgba(27,34,48,.94); border:1px solid var(--line); border-radius:22px; box-shadow:0 18px 50px #080b1240; }
+  .trainer { padding:29px; min-height:548px; display:flex; flex-direction:column; }
+  .eyebrow { text-transform:uppercase; color:var(--gold); letter-spacing:.14em; font-size:11px; font-weight:800; }
+  h1 { margin:9px 0 4px; font-size:clamp(28px,4vw,39px); line-height:1.12; letter-spacing:-.045em; }
+  p { margin:0; color:var(--muted); }
+  .sound { display:flex; align-items:center; gap:14px; margin:28px 0 20px; }
+  .play { border:0; background:var(--gold); color:#181816; width:88px; height:88px; border-radius:27px; font-size:31px; box-shadow:0 10px 25px #e9ba6d28; }
+  .play:hover { filter:brightness(1.1); transform:translateY(-2px); }
+  .sound-meta strong { display:block; font-size:18px; }
+  .sound-meta span { color:var(--muted); font-size:14px; }
+  .answer-title { font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin:0 0 10px; }
+  .answers { display:grid; grid-template-columns:repeat(6,1fr); gap:9px; }
+  .note { min-height:52px; border:1px solid #596476; border-radius:11px; background:#273142; color:var(--text); font-weight:700; }
+  .note:hover:not(:disabled),.note:focus-visible { border-color:var(--gold); background:#394153; outline:none; }
+  .note:disabled { opacity:.35; cursor:default; }
+  .note.right { border-color:var(--mint); background:#244c42; opacity:1; color:#d9fff0; }
+  .note.wrong { border-color:var(--red); background:#573744; opacity:1; }
+  .feedback { min-height:48px; padding-top:16px; font-size:15px; font-weight:650; }
+  .feedback.good { color:var(--mint); }.feedback.bad { color:var(--red); }
+  .actions { display:flex; gap:9px; flex-wrap:wrap; margin-top:auto; }
+  .btn { border:1px solid #637086; color:var(--text); background:transparent; padding:10px 15px; border-radius:10px; font-weight:650; }
+  .btn:hover { border-color:var(--gold); }
+  .btn.primary { border-color:var(--gold); background:var(--gold); color:#1b1a16; }
+  aside { display:flex; flex-direction:column; gap:18px; }
+  .settings,.stats { padding:24px; }
+  h2 { font-size:18px; letter-spacing:-.025em; margin:0 0 17px; }
+  label { display:block; font-size:13px; color:var(--muted); font-weight:650; margin:14px 0 7px; }
+  select { display:block; width:100%; height:42px; background:#283244; color:var(--text); border:1px solid #506075; border-radius:9px; padding:0 10px; }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .toggle { display:flex; align-items:center; gap:10px; margin-top:18px; color:var(--text); font-size:14px; }
+  .toggle input { accent-color:var(--gold); width:17px; height:17px; }
+  .hint { font-size:12px; line-height:1.4; margin-top:6px; }
+  .stat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .stat { border:1px solid var(--line); border-radius:12px; padding:10px; background:#222b3a; }
+  .stat strong { display:block; font-size:22px; line-height:1.1; }
+  .stat span { display:block; font-size:11px; color:var(--muted); margin-top:4px; }
+  .keyboard-panel { margin-top:18px; padding:24px 29px 28px; }
+  .keyboard-head { display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:14px; }
+  .keyboard-head h2 { margin:0; }
+  .keyboard-head p { font-size:13px; }
+  .keys { display:flex; height:145px; position:relative; user-select:none; }
+  .white { flex:1; background:linear-gradient(#fff,#d9dedf); border:1px solid #8998a4; border-radius:0 0 8px 8px; color:#344050; display:flex; align-items:end; justify-content:center; padding-bottom:8px; font-size:12px; font-weight:750; }
+  .white:hover,.white.active { background:linear-gradient(#ffe4ac,#e9ba6d); }
+  .black { position:absolute; z-index:1; width:8.1%; height:90px; top:0; background:linear-gradient(#101722,#273345); border:1px solid #0a0e15; border-radius:0 0 7px 7px; color:#e7ebef; display:flex; align-items:end; justify-content:center; padding-bottom:8px; font-size:10px; font-weight:700; }
+  .black:hover,.black.active { background:linear-gradient(#8f6432,#d99d52); }
+  .footer { text-align:center; color:#8290a3; font-size:12px; margin-top:17px; }
+  @media(max-width:740px) { .grid { grid-template-columns:1fr; }.wrap { padding:16px 13px 35px; } header { margin-bottom:18px; }.trainer { min-height:520px; padding:22px; }.settings,.stats,.keyboard-panel { padding:21px; }.tag { display:none; }.answers { gap:6px; }.note { min-height:48px; }.keys { height:120px; }.black { height:75px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><div class="brand"><div class="mark">♫</div>PitchLab</div><div class="tag">Listen. Name the note. Build your ear.</div></header>
+  <main class="grid">
+    <section class="panel trainer">
+      <div class="eyebrow">Note recognition</div>
+      <h1>What note do you hear?</h1>
+      <p>Listen, choose a note, then see how you did.</p>
+      <div class="sound"><button class="play" id="play" aria-label="Play note">▶</button><div class="sound-meta"><strong>Play the note</strong><span>Click again whenever you need</span></div></div>
+      <div class="answer-title">Choose the note</div>
+      <div class="answers" id="answers"></div>
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+      <div class="actions"><button class="btn primary" id="next">Next note →</button><button class="btn" id="reference">Hear tonic</button><button class="btn" id="reveal">Show answer</button></div>
+    </section>
+    <aside>
+      <section class="panel settings">
+        <h2>Practice setup</h2>
+        <label for="level">Challenge</label><select id="level"></select>
+        <p class="hint" id="levelHint"></p>
+        <div class="row"><div><label for="key">Key / tonic</label><select id="key"></select></div><div><label for="scale">Scale</label><select id="scale"><option>Major</option><option>Minor</option></select></div></div>
+        <label for="instrument">Instrument</label><select id="instrument"></select>
+        <label for="octave">Octave</label><select id="octave"><option value="2">2 · low</option><option value="3">3 · lower</option><option value="4">4 · middle</option><option value="5">5 · high</option></select>
+        <label class="toggle"><input type="checkbox" id="referenceToggle">Show tonic reference button</label>
+      </section>
+      <section class="panel stats"><h2>Your progress</h2><div class="stat-grid"><div class="stat"><strong id="accuracy">0%</strong><span>Accuracy</span></div><div class="stat"><strong id="streak">0</strong><span>Current streak</span></div><div class="stat"><strong id="best">0</strong><span>Best streak</span></div></div></section>
+    </aside>
+  </main>
+  <section class="panel keyboard-panel"><div class="keyboard-head"><h2>Explore the keyboard</h2><p>Click a key to hear it before or after a round.</p></div><div class="keys" id="keyboard"></div></section>
+  <div class="footer">Your browser plays General MIDI instrument samples · Progress stays on this device</div>
+</div>
+<script src="/app.js"></script>
+</body></html>
